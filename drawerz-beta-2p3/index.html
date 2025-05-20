@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drawerz</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  
+  <style>
+    #draw-canvas {
+      touch-action: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Drawerz</h1>
+      <div class="toolbar">
+        <button id="undo-button" title="Undo (Ctrl+Z)"><i class="fas fa-undo"></i></button>
+        <button id="redo-button" title="Redo (Ctrl+Y)"><i class="fas fa-redo"></i></button>
+        <button id="mode-toggle" title="Toggle Pen/Eraser (P/E)"><i class="fas fa-pen"></i></button>
+        <button id="save-button" title="Save Drawing"><i class="fas fa-save"></i></button>
+        <button id="load-button" title="Load Drawing"><i class="fas fa-folder-open"></i></button>
+        <button id="export-button" title="Export Animation"><i class="fas fa-download"></i></button>
+        <button id="dark-mode-toggle" title="Toggle Dark Mode"><i class="fas fa-moon"></i></button>
+      </div>
+    </header>
+
+    <main>
+      <div class="canvas-container">
+        <canvas id="draw-canvas" width="1600" height="900"></canvas>
+      </div>
+      
+      <div class="controls">
+        <div class="control-group">
+          <h3>Drawing</h3>
+          <div class="control-row">
+            <label title="Adjust the stroke thickness">
+              <i class="fas fa-pen-fancy"></i>
+              <span>Size</span>
+              <input type="range" id="stroke-size" min="1" max="20" value="3">
+            </label>
+
+            <div class="color-picker-wrapper">
+              <button id="color-picker-toggle" class="color-preview" title="Choose stroke color">
+                <i class="fas fa-palette"></i>
+                <span>Color</span>
+                <div class="current-color-preview"></div>
+              </button>
+              <div class="color-picker-panel">
+                <div class="color-wheel-container">
+                  <canvas id="color-wheel" width="200" height="200"></canvas>
+                  <canvas id="color-brightness" width="30" height="200"></canvas>
+                </div>
+                <div class="color-sliders">
+                  <div class="slider-group">
+                    <label>R</label>
+                    <input type="range" id="red-slider" min="0" max="255" value="0">
+                    <input type="number" id="red-value" min="0" max="255" value="0">
+                  </div>
+                  <div class="slider-group">
+                    <label>G</label>
+                    <input type="range" id="green-slider" min="0" max="255" value="0">
+                    <input type="number" id="green-value" min="0" max="255" value="0">
+                  </div>
+                  <div class="slider-group">
+                    <label>B</label>
+                    <input type="range" id="blue-slider" min="0" max="255" value="0">
+                    <input type="number" id="blue-value" min="0" max="255" value="0">
+                  </div>
+                  <div class="hex-input">
+                    <label>#</label>
+                    <input type="text" id="hex-value" maxlength="6" value="000000">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Animation Effects</h3>
+          <div class="control-row">
+            <label title="Control the wave-like rotation of strokes">
+              <i class="fas fa-wave-square"></i>
+              <span>Rotation</span>
+              <input type="range" id="jiggle-intensity" min="0" max="20" value="0">
+            </label>
+
+            <label title="Control the floating motion of strokes">
+              <i class="fas fa-wind"></i>
+              <span>Float</span>
+              <input type="range" id="float-intensity" min="0" max="20" value="0">
+            </label>
+            <label title="Control the thickness variation of strokes">
+              <i class="fas fa-expand-alt"></i>
+              <span>Thickness</span>
+              <input type="range" id="thickness-intensity" min="0" max="20" value="0">
+            </label>
+
+            <label title="Control the sketchy effect of strokes">
+              
+              <i class="fas fa-pencil-alt"></i>
+              <span>Sketchy</span>
+              <input type="range" id="sketchy-intensity" min="0" max="20" value="0">
+            </label>
+
+            <label title="Adjust the overall animation speed">
+              <i class="fas fa-tachometer-alt"></i>
+              <span>Speed</span>
+              <input type="range" id="jiggle-speed" min="1" max="60" value="0">
+            </label>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  
+  <div id="export-dialog" class="modal">
+    <div class="modal-content">
+      <h2>Export Animation</h2>
+      <div class="export-options">
+        <div class="option-group">
+          <label>
+            <span>Quality</span>
+            <select id="export-quality">
+              <option value="high">High (2.5 Mbps)</option>
+              <option value="medium">Medium (1.5 Mbps)</option>
+              <option value="low">Low (1 Mbps)</option>
+            </select>
+          </label>
+        </div>
+        <div id="export-progress" class="progress-container">
+          <div class="progress-text">Exporting: <span id="progress-percentage">0</span>%</div>
+          <div class="progress-bar">
+            <div class="progress-fill"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="modal-buttons">
+        <button id="export-cancel" class="secondary">Cancel</button>
+        <button id="export-confirm">Export</button>
+      </div>
+    </div>
+  </div>
+
+
+
+  <script src="main.js" type="module"></script>
+  
+</body>
+</html>
