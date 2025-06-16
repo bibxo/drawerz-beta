@@ -4,6 +4,7 @@ let ffmpeg;
 const canvas = document.getElementById('drawingCanvas');
 const ctx = canvas.getContext('2d');
 
+
 const penToolBtn = document.getElementById('penTool');
 const eraserToolBtn = document.getElementById('eraserTool');
 const strokeSizeSlider = document.getElementById('strokeSize');
