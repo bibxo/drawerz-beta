@@ -1,4 +1,3 @@
-
 const CACHE_NAME = 'drawerz-cache-v1';
 const COOP_HEADERS = {
   'Cross-Origin-Opener-Policy': 'same-origin',
